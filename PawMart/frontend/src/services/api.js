@@ -1,9 +1,10 @@
 
 import axios from "axios";
 
-// สร้างตัวเชื่อมต่อ Backend
+// ใช้ URL จาก Environment Variable
+// ถ้าไม่มี ให้ใช้ localhost ตอนพัฒนา
 const API = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api",
   headers: {
     "Content-Type": "application/json",
   },

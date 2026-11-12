@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ตรวจสอบว่ามีผู้ใช้เข้าสู่ระบบอยู่หรือไม่
+  // ตรวจสอบ Token เมื่อเปิดเว็บไซต์
   useEffect(() => {
     const token = localStorage.getItem("pawmart_token");
 
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
-  // เข้าสู่ระบบ
+  // เข้าสู่ระบบสมาชิก
   async function login(email, password) {
     const response = await API.post("/auth/login", {
       email,
@@ -39,6 +39,27 @@ export function AuthProvider({ children }) {
 
     const data = response.data;
 
+    localStorage.setItem("pawmart_token", data.token);
+    setUser(data.user);
+
+    return data.user;
+  }
+
+  // เข้าสู่ระบบ Admin
+  async function loginAdmin(email, password) {
+    const response = await API.post("/auth/login", {
+      email,
+      password,
+    });
+
+    const data = response.data;
+
+    // ตรวจสอบสิทธิ์ก่อนบันทึก Token
+    if (data.user.role !== "admin") {
+      throw new Error("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานระบบ Admin");
+    }
+
+    // บันทึก Token เฉพาะบัญชี Admin
     localStorage.setItem("pawmart_token", data.token);
     setUser(data.user);
 
@@ -61,6 +82,11 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
+  // อัปเดตข้อมูลสมาชิกหลังแก้ไขโปรไฟล์
+  function updateUser(updatedUser) {
+    setUser(updatedUser);
+  }
+
   // ออกจากระบบ
   function logout() {
     localStorage.removeItem("pawmart_token");
@@ -69,7 +95,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout }}
+      value={{
+        user,
+        loading,
+        login,
+        loginAdmin,
+        register,
+        logout,
+        updateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

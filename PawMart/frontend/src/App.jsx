@@ -1,4 +1,4 @@
-import Register from "./pages/Register";
+
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 
@@ -7,19 +7,24 @@ import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 
-// Pages
+// General Pages
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Cart from "./pages/Cart";
 import Orders from "./pages/Orders";
 import Checkout from "./pages/Checkout";
+import Profile from "./pages/profile";
 
 // Admin Pages
+import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
+import AdminProducts from "./pages/admin/AdminProducts";
+import ManageOrders from "./pages/admin/ManageOrders";
+import ManageUsers from "./pages/admin/ManageUsers";
 
 function App() {
-  // โหลดตะกร้าจาก localStorage เมื่อเปิดเว็บ
   const [cart, setCart] = useState(() => {
     try {
       const savedCart = localStorage.getItem("pawmart_cart");
@@ -29,7 +34,7 @@ function App() {
     }
   });
 
-  // บันทึกตะกร้าทุกครั้งที่มีการเปลี่ยนแปลง
+  // บันทึกตะกร้าสินค้าลง Local Storage
   useEffect(() => {
     localStorage.setItem("pawmart_cart", JSON.stringify(cart));
   }, [cart]);
@@ -68,7 +73,7 @@ function App() {
     });
   };
 
-  // เพิ่มหรือลดจำนวนสินค้า
+  // เปลี่ยนจำนวนสินค้า
   const handleChangeQty = (productId, change) => {
     setCart((currentCart) =>
       currentCart.map((item) => {
@@ -94,7 +99,12 @@ function App() {
     );
   };
 
-  // จำนวนสินค้ารวมทุกชิ้น
+  // ล้างตะกร้าสินค้า
+  const handleClearCart = () => {
+    setCart([]);
+  };
+
+  // นับจำนวนสินค้าทั้งหมดในตะกร้า
   const cartCount = cart.reduce(
     (sum, item) => sum + item.quantity,
     0
@@ -106,16 +116,29 @@ function App() {
 
       <Routes>
         {/* หน้าทั่วไป */}
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Home onAdd={handleAddToCart} />} />
+        <Route
+          path="/"
+          element={<Home onAdd={handleAddToCart} />}
+        />
+
         <Route
           path="/products"
           element={<Products onAdd={handleAddToCart} />}
         />
-        <Route path="/login" element={<Login />} />
 
-        {/* หน้าสำหรับสมาชิก */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* หน้าเข้าสู่ระบบ Admin */}
+        <Route
+          path="/admin/login"
+          element={<AdminLogin />}
+        />
+
+        {/* หน้าสำหรับสมาชิกที่เข้าสู่ระบบแล้ว */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<Profile />} />
+
           <Route
             path="/cart"
             element={
@@ -126,13 +149,41 @@ function App() {
               />
             }
           />
-          <Route path="/checkout" element={<Checkout cart={cart} />} />
+
+          <Route
+            path="/checkout"
+            element={
+              <Checkout
+                cart={cart}
+                clearCart={handleClearCart}
+              />
+            }
+          />
+
           <Route path="/orders" element={<Orders />} />
         </Route>
 
-        {/* หน้าสำหรับ Admin */}
+        {/* หน้าสำหรับ Admin เท่านั้น */}
         <Route element={<AdminRoute />}>
-          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route
+            path="/admin/dashboard"
+            element={<Dashboard />}
+          />
+
+          <Route
+            path="/admin/products"
+            element={<AdminProducts />}
+          />
+
+          <Route
+            path="/admin/orders"
+            element={<ManageOrders />}
+          />
+
+          <Route
+            path="/admin/users"
+            element={<ManageUsers />}
+          />
         </Route>
       </Routes>
     </>

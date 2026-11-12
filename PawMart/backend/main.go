@@ -15,17 +15,19 @@ import (
 )
 
 func main() {
+	// โหลด .env สำหรับตอนพัฒนาในเครื่อง
+	// ถ้าไม่มีไฟล์ก็ไม่ต้องหยุดโปรแกรม
+	_ = godotenv.Load("../.env")
 
-	// โหลดไฟล์ .env จากโฟลเดอร์ PawMart
-	err := godotenv.Load("../.env")
-
-	if err != nil {
-		log.Fatal("Cannot load .env:", err)
+	// ตรวจสอบ DATABASE_URL
+	if os.Getenv("DATABASE_URL") == "" {
+		log.Fatal("DATABASE_URL is empty")
 	}
 
-	// เชื่อมต่อ Database
-	err = config.ConnectDatabase()
+	log.Println("DATABASE_URL loaded successfully")
 
+	// เชื่อมต่อ Database
+	err := config.ConnectDatabase()
 	if err != nil {
 		log.Fatal("Database connection failed:", err)
 	}
@@ -37,17 +39,16 @@ func main() {
 	// เปิดใช้งาน CORS
 	handler := middleware.CORS(mux)
 
-	// กำหนด Port
+	// ใช้ PORT จาก Render หรือใช้ 8080 ตอนพัฒนา
 	port := os.Getenv("PORT")
-
 	if port == "" {
 		port = "8080"
 	}
 
 	fmt.Println("PawMart Backend running on port", port)
 
+	// เปิด Server
 	err = http.ListenAndServe(":"+port, handler)
-
 	if err != nil {
 		log.Fatal(err)
 	}
